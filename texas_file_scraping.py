@@ -2,6 +2,7 @@ import time
 import re
 from copy import deepcopy
 import ast
+import os
 
 from selenium import webdriver
 from bs4 import BeautifulSoup
@@ -19,6 +20,7 @@ def get_url(text_file):
 
 def get_data(url):
     driver = webdriver.Chrome()
+    driver.get(url)
     time.sleep(1)
 
     username_input = driver.find_element_by_xpath('//*[@id="id_username"]')
@@ -198,3 +200,4 @@ if __name__ == '__main__':
     url = get_url(links_file)[0]
     data = get_data(url)
     create_csv_form_text_file('output.txt')
+    os.remove('output.txt')
