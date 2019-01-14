@@ -9,16 +9,21 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import numpy as np
 
-username = ''
-password = ''
+username = 'aeldiasty@primerockencap.com'
+password = 'getmein'
 
 
-def get_url(text_file):
+def get_urls(text_file):
     urls = open(text_file, 'r').readlines()
+
+    for i, url in enumerate(urls):
+        if '&page=' not in url:
+            url = url + '&page==1'
+            urls[i] = url
     return urls
 
 
-def get_data(url):
+def get_data(url, text_file_name):
     driver = webdriver.Chrome()
     driver.get(url)
     time.sleep(1)
@@ -41,7 +46,7 @@ def get_data(url):
         number_of_pages = int(eval(number_of_results) / 50)
 
     # Create text file
-    with open('output.txt', 'w') as ouput_text_file:
+    with open(text_file_name, 'w') as ouput_text_file:
         pass
 
     # parse
@@ -86,15 +91,25 @@ def get_data(url):
 
             # 3, 4, 5
             third_column_data = BeautifulSoup(str(tds[3]), 'html.parser').find('td').text
-            splitter = re.findall(r'[A-Z]+', third_column_data)
+
+            try:
+                third_column_data = third_column_data.replace("| ", '')
+            except:
+                pass
+
+            if 'N/A' in third_column_data:
+                splitter = 'N/A'
+            else:
+                splitter = re.findall(r'[A-Z]+', third_column_data)
+
             try:
                 third_column_data_number = third_column_data.split(splitter[0])[0].strip()
                 third_column_data_bk = splitter[0]
                 third_column_data_volpg = third_column_data.split(splitter[0])[1].strip()
             except:
                 third_column_data_number = third_column_data[:5]
-                third_column_data_bk = third_column_data[5:9]
-                third_column_data_volpg = third_column_data[9:]
+                third_column_data_bk = third_column_data[5:10]
+                third_column_data_volpg = third_column_data[10:]
 
             dict.update({'third_column_data_number': third_column_data_number})
             dict.update({'third_column_data_bk': third_column_data_bk})
@@ -102,12 +117,34 @@ def get_data(url):
 
 
             # 6
-            grantor = BeautifulSoup(str(tds[4]), 'html.parser').find('li').text
+            grantors = BeautifulSoup(str(tds[4]), 'html.parser').find_all('li')
+
+            for i, grantor in enumerate(grantors):
+                grantor = BeautifulSoup(str(grantor), 'html.parser').find('li').text
+                grantors[i] = grantor
+
+            if len(grantors) > 1:
+                grantor = ' - '.join(grantors)
+            else:
+                grantor = grantors[0]
             dict.update({'grantor': grantor})
 
             # 7
-            grantee = BeautifulSoup(str(tds[5]), 'html.parser').find('li').text
+            # grantee = BeautifulSoup(str(tds[5]), 'html.parser').find('li').text
+            # dict.update({'grantee': grantee})
+
+            grantees = BeautifulSoup(str(tds[5]), 'html.parser').find_all('li')
+
+            for i, grantee in enumerate(grantees):
+                grantee = BeautifulSoup(str(grantee), 'html.parser').find('li').text
+                grantees[i] = grantee
+
+            if len(grantees) > 1:
+                grantee = ' - '.join(grantees)
+            else:
+                grantee = grantees[0]
             dict.update({'grantee': grantee})
+
 
 
             # 8, 9, 10, 11, 12, 13, 14
@@ -134,7 +171,7 @@ def get_data(url):
                     continue
 
             # Save data
-            with open('output.txt', 'a') as ouput_text_file:
+            with open(text_file_name, 'a') as ouput_text_file:
                 ouput_text_file.write(str(dict))
                 ouput_text_file.write('\n')
 
@@ -143,31 +180,7 @@ def get_data(url):
 
     return dicts
 
-
-# def create_csv_form_list(dicts):
-#     columns = ['type',
-#                'date_field',
-#                'third_column_data_number',
-#                'third_column_data_bk',
-#                'third_column_data_volpg',
-#                'grantor',
-#                'grantee',
-#                'survey_name',
-#                'section',
-#                'block',
-#                'acreage',
-#                'abstract',
-#                'number',
-#                'town_ship'
-#                ]
-#     df = pd.DataFrame(columns=columns)
-#     for dict in dicts:
-#         df = df.append(dict, ignore_index=True)
-#
-#     df.index = np.arange(1, len(df) + 1)
-#     df.to_csv('output.csv')
-
-def create_csv_form_text_file(text_file):
+def create_csv_form_text_file(text_file, output_file_name):
     columns = ['type',
                'date_field',
                'third_column_data_number',
@@ -192,12 +205,38 @@ def create_csv_form_text_file(text_file):
         df = df.append(dict, ignore_index=True)
 
     df.index = np.arange(1, len(df) + 1)
-    df.to_csv('output.csv')
+    df.to_csv(output_file_name)
 
 
 if __name__ == '__main__':
-    links_file = 'links.txt'
-    url = get_url(links_file)[0]
-    data = get_data(url)
-    create_csv_form_text_file('output.txt')
-    os.remove('output.txt')
+    version = '1.2'
+    print('Initializing texas_file_scrap version {}'.format(version), '\n')
+
+    links_file = 'links.csv'
+
+    df = pd.read_csv(links_file, header=None)
+    number_of_rows = df.shape[0]
+
+    print('Working on {} URLs'.format(number_of_rows))
+
+    for index, row in df.iterrows():
+        # Get data from SCV
+        file_name = row[0]
+        url = row[1]
+        if '&page=' not in url:
+            url = url + '&page=1'
+
+        print('Working on {}'.format(url))
+
+        # File names
+        text_file_name = '{}.txt'.format(file_name)
+        csv_file_name = '{}.csv'.format(file_name)
+
+        # Scrap
+        data = get_data(url, text_file_name)
+        create_csv_form_text_file(text_file_name, csv_file_name)
+        os.remove(text_file_name)
+
+        print('{} has been generated successfully.'.format(csv_file_name))
+
+    print('The process is done')
