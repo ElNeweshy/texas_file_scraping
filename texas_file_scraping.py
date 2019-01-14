@@ -9,8 +9,8 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import numpy as np
 
-username = 'aeldiasty@primerockencap.com'
-password = 'getmein'
+username = ''
+password = ''
 
 
 def get_urls(text_file):
