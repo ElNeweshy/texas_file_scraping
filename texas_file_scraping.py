@@ -5,43 +5,61 @@ import ast
 import os
 
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+
 from bs4 import BeautifulSoup
 import pandas as pd
 import numpy as np
 
-username = ''
-password = ''
+username = 'aeldiasty@primerockencap.com'
+password = 'getmein'
 
 
 def get_url(text_file):
     urls = open(text_file, 'r').readlines()
     return urls
 
+
 def get_data(url):
-    driver = webdriver.Chrome()
+    options = Options()
+    options.add_argument("--disable-notifications")
+    driver = webdriver.Chrome(chrome_options=options)
+
+    try: driver.switch_to.alert.dismiss()
+    except: pass
+
     driver.get(url)
-    # time.sleep(1)
+
+    try: driver.switch_to.alert.dismiss()
+    except: pass
 
     driver.find_element_by_xpath('//*[@id="main-menu"]/div[2]/ul/li[6]/a').click()
-    # login_button.click()
-
     username_input = driver.find_element_by_xpath('//*[@id="loginUsername"]')
     password_input = driver.find_element_by_xpath('//*[@id="loginPassword"]')
 
     username_input.send_keys(username)
+
+    try: driver.switch_to.alert.dismiss()
+    except: pass
+
     password_input.send_keys(password)
+
+    try: driver.switch_to.alert.dismiss()
+    except: pass
+    time.sleep(1)
+
 
     # submit
     driver.find_element_by_xpath('//*[@id="main-menu"]/div[2]/ul/li[6]/div/div[2]/div/div/div/form/button').click()
-
     driver.get(url)
 
-    # Git the number of results
-    # number_of_results = BeautifulSoup(driver), 'html.parser').find('span').text
+    # Get the number of results
     number_of_results = driver.find_element_by_xpath(
         '//*[@id="react_rendered"]/div/form/div/div[2]/div[2]/div[1]/div/div[2]').text
-    number_of_results = number_of_results.replace(' Results for Name: *', '').replace(',', '')
-    print('Number of Results', number_of_results)
+    number_of_results = re.findall(r'\d+,\d+|\d+', number_of_results)[0]
+    number_of_results = number_of_results.replace(',', '')
+
+    print('Number of Results:', number_of_results)
 
     number_of_pages = int(eval(number_of_results) / 50) + 1
     if eval(number_of_results) / 50 == int(eval(number_of_results) / 50):
@@ -109,7 +127,6 @@ def get_data(url):
             dict.update({'third_column_data_bk': third_column_data_bk})
             dict.update({'third_column_data_volpg': third_column_data_volpg})
 
-
             # 6
             grantor = BeautifulSoup(str(tds[4]), 'html.parser').find('li').text
             dict.update({'grantor': grantor})
@@ -117,7 +134,6 @@ def get_data(url):
             # 7
             grantee = BeautifulSoup(str(tds[5]), 'html.parser').find('li').text
             dict.update({'grantee': grantee})
-
 
             # 8, 9, 10, 11, 12, 13, 14
             legal_description = BeautifulSoup(str(tds[6]), 'html.parser').find_all('li')
@@ -209,4 +225,4 @@ if __name__ == '__main__':
     url = get_url(links_file)[0]
     data = get_data(url)
     create_csv_form_text_file('output.txt')
-    os.remove('output.txt')
+    # os.remove('output.txt')
