@@ -46,25 +46,7 @@ def get_search_url(link_data):
     driver.find_element_by_xpath('//*[@id="Form0Name"]').send_keys('*')
     driver.find_element_by_xpath('//*[@id="Form1Name"]').send_keys('*')
 
-    # driver.find_element_by_xpath('//*[@id="react_rendered"]/div/form/div/div[2]/div[1]/div[2]/div/div[1]/div/div[1]/div[2]/div[1]/div[1]/div/div[2]/div/div[2]/div[2]/div[1]/div[7]').click()
-    # first_element_in_date = driver.find_element_by_xpath('//*[@id="react_rendered"]/div/form/div/div[2]/div[1]/div[2]/div/div[1]/div/div[1]/div[2]/div[1]/div[1]/div/div[2]/div/div[2]/div[2]/div[1]/div[1]').text()
-    # print('first_element_in_date', first_element_in_date)
-
-    # start_search_day = start_search_date.split('-')[0]
-    # start_search_month = start_search_date.split('-')[1]
-    # start_search_year = start_search_date.split('-')[2]
-
-    '''
-    1: //*[@id="react_rendered"]/div/form/div/div[2]/div[1]/div[2]/div/div[1]/div/div[1]/div[2]/div[1]/div[1]/div/div[2]/div/div[2]/div[2]/div[1]/div[7]
-    2: //*[@id="react_rendered"]/div/form/div/div[2]/div[1]/div[2]/div/div[1]/div/div[1]/div[2]/div[1]/div[1]/div/div[2]/div/div[2]/div[2]/div[2]/div[1]
-    3: //*[@id="react_rendered"]/div/form/div/div[2]/div[1]/div[2]/div/div[1]/div/div[1]/div[2]/div[1]/div[1]/div/div[2]/div/div[2]/div[2]/div[2]/div[2]
-    
-    '''
-
-    # driver.find_element_by_xpath('//*[@id="react_rendered"]/div/form/div/div[2]/div[1]/div[2]/div/div[1]/div/div[1]/div[2]/div[1]/div[1]/div/div[2]/div/div[2]/div[2]/div[1]/div[7]').send_keys(''.format(link_data['start_search_day']))
-    # driver.find_element_by_xpath('//*[@id="react_rendered"]/div/form/div/div[2]/div[1]/div[2]/div/div[1]/div/div[1]/div[2]/div[1]/div[1]/div/div[2]/div/div[2]/div[1]/div[2]/div[1]/select').send_keys(''.format(link_data['start_search_month']))
-    # driver.find_element_by_xpath('//*[@id="react_rendered"]/div/form/div/div[2]/div[1]/div[2]/div/div[1]/div/div[1]/div[2]/div[1]/div[1]/div/div[2]/div/div[2]/div[1]/div[2]/div[2]/select').send_keys(''.format(link_data['start_search_year']))
-
+    # Input the dates
     driver.find_element_by_xpath('//*[@id="start_date"]').send_keys(Keys.CONTROL + "a")
     driver.find_element_by_xpath('//*[@id="start_date"]').send_keys(Keys.DELETE)
     driver.find_element_by_xpath('//*[@id="start_date"]').send_keys(link_data['start_search_date'])
@@ -75,8 +57,28 @@ def get_search_url(link_data):
     driver.find_element_by_xpath('//*[@id="start_date"]').send_keys(Keys.RETURN)
 
 
-    driver.find_element_by_xpath('//*[@id="react_rendered"]/div/form/div/div[2]/div[1]/div[2]/div/div[1]/div/div[1]/div[1]/div/div/div/div/div[1]/div[3]/button').click()
+    # Check types
+    insturument_types = driver.find_element_by_xpath('//*[@id="react_rendered"]/div/form/div/div[2]/div[1]/div[2]/div/div[1]/div/div[1]/div[2]/div[3]/div/div/fieldset')
+    all_instruments = driver.find_elements_by_tag_name("label")
+    for label in all_instruments:
+        # input = instrument.find_elements_by_tag_name("input")
+        # print(input)
+        # input = input[0]
+        spans = label.find_elements_by_tag_name("span")
+        print(spans)
+        # span = spans[0]
+        print(span)
+        span_text = span.text()
+        print(span_text)
 
+    #click Abondoment
+    # driver.find_element_by_xpath('//*[@id="react_rendered"]/div/form/div/div[2]/div[1]/div[2]/div/div[1]/div/div[1]/div[2]/div[3]/div/div/fieldset/label[1]/input').click()
+
+    # Press search
+    # driver.find_element_by_xpath('//*[@id="react_rendered"]/div/form/div/div[2]/div[1]/div[2]/div/div[1]/div/div[1]/div[1]/div/div/div/div/div[1]/div[3]/button').click()
+
+
+    # Get the url
     search_url = driver.current_url
     search_url = search_url + '?view=table&sorting=-filed_date&page=1'
 
